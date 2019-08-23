@@ -8,6 +8,67 @@
   [![Windows Build][appveyor-image]][appveyor-url]
   [![Test Coverage][coveralls-image]][coveralls-url]
 
+
+---
+
+## 实例说明
+
+- auth - 通过express-session和pbkdf2-password处理用户登录鉴权，通过session保存用户登录信息
+
+- content-negotiation - 通过res.format，来format不同类型如html/text/json的内容协商类型
+
+- cookie-sessions - 使用cookie-session，用cookie加密做session的简单方案
+
+- cookies - 使用cookie-parser来管理cookie
+
+- download - 使用res.download去下载文件
+
+- ejs - 使用ejs模板引擎，并将后缀识别变为html
+
+- error - 自定义异常处理，并置于所有route之后
+
+- error-pages - 错误页处理
+
+- hello-world - 一个最基本的helloworld
+
+- markdown - 使用markdown模板引擎
+
+- multi-router - 多路由管理，封装controller
+
+- multiparty - 使用multiparty处理表单`enctype="multipart/form-data"`
+
+- mvc - 一个mvc的demo
+
+- online - redis使用
+
+- params - 解析各种不同的参数风格
+
+- resource - 通过app.resource管理资源
+
+- route-map - 自定义map，统一管理router
+
+- route-middleware - 自定义路由中间件，配合各路由使用
+
+- route-separation - 路由分离管理
+
+- search - 一个查询接口的例子
+
+- session - 使用session和使用redis配合session的例子
+
+- static-files - 通过express.static指定静态资源的例子
+
+- vhost - 使用vhost虚拟主机域名管理
+
+- view-consctructor - 自定义模板引擎并使用
+
+- view-local - 稍微复杂点的使用模板的例子，使用的是ejs
+
+- web-service - 写一个服务提供稍微复杂点的接口
+
+
+
+---
+
 ```js
 var express = require('express')
 var app = express()
