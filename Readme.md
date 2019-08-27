@@ -11,6 +11,99 @@
 
 ---
 
+## 模块依赖
+
+模块依赖参考：[npmgraph](http://npm.broofa.com/?q=express)
+
+![img](/graphviz/module_depends.png)
+
+## 目录结构
+
+```
+├── application.js - 封装一些app.**的API
+├── express.js - 真正暴露给外界的express对象
+├── middleware
+|  ├── init.js - 将app.request/app.response赋予req/res的中间件，基于setPrototypeOf
+|  └── query.js - 对query进行解析的中间件，底层基于qs模块
+├── request.js
+├── response.js
+├── router
+|  ├── index.js
+|  ├── layer.js
+|  └── route.js
+├── utils.js
+└── view.js
+```
+
+## 执行流程
+
+### express.js
+
+入口文件，封装express对象，调用图：
+
+![](/graphviz/express.dot.svg)
+
+1、通过mixin给app对象植入EventEmitter和app，其中app依赖application.js，
+
+2、然后调用app.init进行初始化。
+
+3、并将各个内部模块对外进行暴露。
+
+### application.js
+
+主要封装app.** 的各种api，调用图：
+
+![](/graphviz/application.dot.svg)
+
+#### app.all
+
+给所有methods模板的对应方法引入fn。
+
+#### app.init初始化
+express引入application会立即调用的入口方法，通过defaultConfiguration完成默认配置的设置。针对不同的配置有不同的底层库来对应配合。
+
+比如说etag使用etag模块；查询字符串解析使用qs模块或原生的querystring模块；代理使用proxy-addr模块。
+
+然后监听了mount事件，基于setPrototypeOf模块将自己的原型设置为传入的对象。
+
+#### app.use使用中间件
+
+将封装好的中间件传入，会遍历this._router,给每个路由引入传入的中间件的fn.handle方法。
+
+#### app.render渲染
+调用view.js对象，使用view.render来完成模板视图的渲染
+
+#### app.listen监听
+
+通过原生http模块的createServer创建server，再通过server.listen来监听即可
+
+#### app.engine指定引擎
+
+指定引擎到this.engines中，方便render方法调用时获取引擎传递给view对象
+
+#### app.set设置或获取配置
+
+如果只有一个参数则获取配置，如果多个则设置。终点是this.settings。基于几种特殊情况，比如说etag、queryparser、trustproxy采用的util，使用底层库组装
+
+#### app.enable/app.disable
+
+调用app.set，只不过第二个参数自动为true/false
+
+#### app.methods(app.get/app.post)请求
+
+使用methods模块，对每个不同请求类型引入fn处理函数。如果是get方法，则进行多态处理，单参数情况直接调用set，完成配置的读取。
+
+#### route/param/handle
+
+直接调用了底层router的对应方法。
+
+#### app.lazyrouter
+
+对路由配置进行设置，如果this._router已设置，则直接返回。
+
+
+
+
 ## 实例说明
 
 - auth - 通过express-session和pbkdf2-password处理用户登录鉴权，通过session保存用户登录信息

@@ -1,0 +1,56 @@
+digraph tree
+{
+    nodesep=0.5;
+    charset="UTF-8";
+    rankdir=LR;
+    fixedsize=true;
+    compound=true;
+    node [style="rounded,filled", width=0, height=0, shape=box, fillcolor="#E5E5E5", concentrate=true]
+
+    subgraph cluster_express {
+        label = "express.js";
+        "createApplication";
+		"exports";
+    }
+	"mixin" -> "基于merge-descriptors模块"
+	"createApplication" -> "mixin"
+	"mixin" -> "EventEmitter"
+	"mixin" -> "app"
+	"createApplication" -> "app.init()" -> "app"
+
+	"exports" -> "application" -> "app"
+	"exports" -> "request" -> "req"
+	"exports" -> "response" -> "res"
+	"exports" -> "Route" -> "exports.Route"
+	"exports" -> "Router" -> "exports.proto"
+	"exports" -> "json" -> "基于body-parser模块的json"
+	"exports" -> "query" -> "exports.query"
+	"exports" -> "static" -> "基于serve-static模块"
+	"exports" -> "urlencoded" -> "基于body-parser模块的urlencoded"
+
+    subgraph cluster_application {
+        label = "application.js";
+        "app";
+    }
+
+	subgraph cluster_request {
+        label = "request.js";
+        "req";
+    }
+	subgraph cluster_response {
+        label = "response.js";
+        "res";
+    }
+	subgraph cluster_Route {
+        label = "route.js";
+        "exports.Route";
+    }
+	subgraph cluster_Router {
+        label = "router/index.js";
+        "exports.proto";
+    }
+	subgraph cluster_query {
+        label = "middleware/query.js";
+        "exports.query";
+    }
+}

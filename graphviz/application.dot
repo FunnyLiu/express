@@ -1,0 +1,93 @@
+digraph tree
+{
+    nodesep=0.5;
+    charset="UTF-8";
+    rankdir=LR;
+    fixedsize=true;
+    compound=true;
+    node [style="rounded,filled", width=0, height=0, shape=box, fillcolor="#E5E5E5", concentrate=true]
+
+    subgraph cluster_application {
+        label = "application.js";
+        "this._router"
+        "this.settings"
+        "this.cache"
+        "this.engines"
+        "init"
+        "defaultConfiguration"
+        "set"
+        "enable"->"设置为true"->"set"
+        "disable"->"设置为false"->"set"
+        "methods"->"get,post..." ->"基于methods模块"->"get通过参数个数多态"->"set" [color=red]
+        "基于methods模块"->"lazyrouter"
+        "lazyrouter"
+        "listen"->"http模块createServer"->"server.listen"
+        "use"->"传入中间件方法fn" ->"this._router"->"遍历，给每个路由引用传入的中间件方法fn.handle" [color=red]
+        "all"->"lazyrouter"->"给每个methods引用fn" [color=blue]
+        "handler"
+        "app.route"
+        "app.engine"->"指定后缀文件使用指定引擎方法fn"->"this.engines"
+        "app.param"
+        "app.render"->"this.cache"
+    }
+    "init" -> "defaultConfiguration"
+
+    "defaultConfiguration" -> "set"
+
+    "defaultConfiguration" -> "on:mount" -> "将自己的原型设置为传入的对象" ->"基于setPrototypeOf模块"
+
+
+    "set" -> "this.settings"
+    "set" -> "etag" -> "utils.compileEtag"
+
+    "set" -> "query parser" ->"utils.compileQueryParser"
+
+    "set" -> "trust proxy" -> "utils.compileTrust"
+
+    "lazyrouter" ->"实例化Router"->"router.Router" ->"挂载"->"this._router"[color=green]
+    "this._router"->"router.use"->"middleware/query"
+    "router.use"->"middleware/init"
+
+    "methods"->"route"
+    "handler"->"router.handle"
+    "app.route"->"直接调用对应router的route"->"route"
+    "app.param"->"直接调用对应router的param"->"router.param"
+    "app.render"->"取得引擎"->"this.engines"->"view.View"->"view.render"[color=red];
+
+    subgraph cluster_application_settings {
+        label = "default settings";
+        "x-powered-by"->"true";
+        "etag" -> "weak";
+        "env" -> "process.env.NODE_ENV||'development'"
+        "query parser" -> "extended";
+        "subdomain offset" -> "2";
+        "trust proxy" -> "false";
+        "view";
+        "views" -> "resolve('views')";
+        "jsonp callback name" -> "callback";
+        "view cache" -> "生产环境为true";
+    }
+    "view" -> "view.View";
+
+    subgraph cluster_utils {
+        label = "utils.js";
+        "utils.compileEtag" -> "根据参数决定策略。基于etag模块";
+        "utils.compileQueryParser" -> "根据参数决定策略。基于qs模块或原生querystring模块";
+        "utils.compileTrust" -> "更具参数决定配置。基于proxy-addr模块";
+    }
+
+    subgraph cluster_view {
+        label = "view.js";
+        "view.View";
+        "view.render"
+    }
+
+    subgraph cluster_Router {
+        label = "router/index.js";
+        "router.Router";
+        "router.use"
+        "router.handle"
+        "route"
+        "router.param"
+    }
+}
