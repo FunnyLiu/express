@@ -25,7 +25,7 @@
 ├── middleware
 |  ├── init.js - 将app.request/app.response赋予req/res的中间件，基于setPrototypeOf
 |  └── query.js - 对query进行解析的中间件，底层基于qs模块
-├── request.js
+├── request.js - 封装了一些req.**的API和属性
 ├── response.js
 ├── router
 |  ├── index.js
@@ -100,6 +100,81 @@ express引入application会立即调用的入口方法，通过defaultConfigurat
 #### app.lazyrouter
 
 对路由配置进行设置，如果this._router已设置，则直接返回。
+
+### middleware/init.js
+
+用来设置header头X-Powered-By Express，以及将传入的app的request和response，通过setprototypeof模块注入到req和res上。
+
+调用时机在application的lazyrouter方法中，针对this._router使用了该中间件。
+
+### middleware/query.js
+
+给req增加query属性，基于qs模块。
+
+调用时机同样在application的lazyrouter方法中，针对this._router使用了该中间件。
+
+### request.js
+
+给req增加大量属性和方法。调用关系图：
+
+![](/graphviz/request.dot.svg)
+
+#### req对象
+基于http模块的IncomingMessage对象。
+
+#### req.acceptsLanguage/accepts/acceptsEncodings/acceptsCharsets
+
+均基于accepts模块，用来处理Http请求头之Accept字段。
+
+#### req.range()
+
+基于range-parser模块，用来处理Http请求头之Range字段。
+
+#### req.param()
+
+已准备废弃的方法，通过优先级依次从params,body,query找对应key的值。
+
+#### req.is()
+
+基于type-is模块，判断http请求头之content-type字段
+
+#### defineGetter()
+
+通过Object.defineProperty给某些属性增加get函数，以下几个属性都基于此。
+
+#### req.fresh
+
+通过fresh模块判断是否走协商缓存
+
+#### req.ips/ip
+
+基于proxy-addr模块，和代理相关.
+
+#### req.path
+
+基于parseurl模块做url的路径解析
+
+#### req.subdomains
+
+基于req.hostname做字符串解析，拿到子域名
+
+#### req.secure
+
+基于req.protocol，判断是否是https，是否安全
+
+#### req.xhr
+
+基于http请求头之x-requested-with判断是否是xhr
+
+#### req.protocol
+
+基于http请求头之x-forwarded-proto获取协议名
+
+#### req.get/header
+
+从this.header上拿到指定http头的值
+
+
 
 
 
