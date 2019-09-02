@@ -26,7 +26,7 @@
 |  ├── init.js - 将app.request/app.response赋予req/res的中间件，基于setPrototypeOf
 |  └── query.js - 对query进行解析的中间件，底层基于qs模块
 ├── request.js - 封装了一些req.**的API和属性
-├── response.js
+├── response.js - 封装了一些res.**的API和属性
 ├── router
 |  ├── index.js
 |  ├── layer.js
@@ -140,7 +140,7 @@ express引入application会立即调用的入口方法，通过defaultConfigurat
 
 #### defineGetter()
 
-通过Object.defineProperty给某些属性增加get函数，以下几个属性都基于此。
+通过Object.defineProperty给某些属性增加get函数，以下几个属性都基于此。使用Object.defineProperty是为了来防止篡改这些对象，因为默认情况下writable为false，所以即使外界设置了值，也无效。
 
 #### req.fresh
 
@@ -174,10 +174,85 @@ express引入application会立即调用的入口方法，通过defaultConfigurat
 
 从this.header上拿到指定http头的值
 
+### response.js
+
+给res增加大量属性和方法。调用关系图：
+
+![](/graphviz/response.dot.svg)
+
+#### res对象 
+
+res对象基于原生http模块的ServerResponse对象
+
+#### res.get()
+
+获取对应响应头，调用原生http.ServerResponse的getHeader方法。
+
+#### res.status()
+
+设置状态码，底层ServerResponse.statusCode
+
+#### res.json()
+
+通过封装的stringify方法，序列化json对象为字符串，再通过res.send发送
+
+#### res.send()
+
+发送响应，基于底层ServerResponse.end()
+
+#### res.jsonp()
+
+支持封装jsonp
+
+#### res.sendStatus()
+
+发送状态码，基于statuses模块。
+
+#### res.append()
+
+通过app.set()，增加响应头。
+
+#### res.set/res.header
+
+基于ServerResponse.setHeader()，来设置响应头。
+
+#### res.render
+
+基于app.render来渲染模板。
+
+#### res.links/res.cookie/res.attachment
+
+通过res.set()，来修改不同的http响应头信息。底层基于不同的三方模块。
+
+### router/index.js router/layer.js router/route.js
+
+调用关系图：
+
+![](/graphviz/router.dot.svg)
+
+三者关系是，router用来做Router类的入口。layer是用来处理同一path的，route是用来处理不同method的。
+
+通过Router.route()方法来实例化Route和Layer，并传入Route的dispatch方法，最后挂载Layer到自己的栈Router.stack上。
+Router对于不同methods，则调用Route的methods方法。
+Router.use会实例化Layer，并挂载Layer到自己的栈Router.stack上。
+Router.handle方法会处理栈，直到全部处理完成，底层基于Layer的handle_error和handle_request方法。
+
+Route也有自己的栈Route.stack，在使用Route.methods方法时，会挂载到stack上，并在dispatch方法时去消费栈，底层也是调用Layer的handle_error和handle_request方法。
+
+Layer只要是用来将同一path的路由安排在一起，每一个中间件都是一个Layer对象。
 
 
+## 原理
 
+### 请求的完整流程
 
+当请求到来时，处理过程是app.handle → router.handle，事实上，app.handle调用了router.handle，而router.handle的过程，则是依次对router.stack中存放的中间件进行调用。
+
+router.stack中存的是一个个的Layer对象，用来管理中间件。如果Layer对象表示的是一个路由中间件，则其route属性会指向一个Route对象，而route.stack中存放的也是一个个的Layer对象，用来管理路由处理函数。
+
+因此，当一个请求到来的时候，会依次通过router.stack中的Layer对象，如果遇到路由中间件，则会依次通过route.stack中的Layer对象。
+
+对于router.stack中的每个Layer对象，会先判断是否匹配请求路径，如果不匹配，则跳过，继续下一个。在路径匹配的情况下，如果是非路由中间件，则执行该中间件函数；如果是路由中间件，则继续判断该中间件的路由对象能够处理请求的HTTP方法，如果不能够处理，则跳过继续下一个，如果能够处理则对route.stack中的Layer对象（与请求的HTTP方法匹配的）依次执行。
 
 ## 实例说明
 

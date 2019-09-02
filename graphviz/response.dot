@@ -1,0 +1,73 @@
+digraph tree
+{
+    nodesep=0.5;
+    charset="UTF-8";
+    rankdir=LR;
+    fixedsize=true;
+    compound=true;
+    node [style="rounded,filled", width=0, height=0, shape=box, fillcolor="#E5E5E5", concentrate=true]
+
+    subgraph cluster_response {
+        label = "response.js";
+        "res";
+        "res.get()";
+        "res.status()";
+        "res.links()";
+        "res.send()";
+        "res.json()";
+        "res.jsonp()"->"支持jsonp";
+        "res.sendStatus()"->"基于statuses模块";
+        "res.set()";
+        "res.contentType()";
+        "res.type()";
+        "res.format()";
+        "res.attachment()";
+        "res.append()";
+        "res.set()";
+        "res.header()";
+        "res.clearCookie()";
+        "res.cookie()";
+        "res.location()";
+        "res.redirect()";
+        "res.end()";
+        "res.render()";
+        "stringify()"->"基于JSON.stringify()，并兼容html转码"
+
+    }
+    "res"-> "ServerResponse"[label="基于"]
+    "res.status()"->"response.statusCode"[label="设置",color=pink]
+    "res.get()"->"response.getHeader()"[label="调用"]
+    "res.links()"->"Link"[label="获取，拼接",color=blue];
+    "res.json()"->"stringify()"->"res.send()"[color=red];
+    "res.contentType()"->"res.type()"->"Content-Type"[label="设置",color=red];
+    "res.contentType()"->"res.type()"->"send模块"[label="基于",color=blue];
+    "res.format()"->"Accept"[label="根据情况来做不同处理"];
+    "res.attachment()"->"content-disposition"->"基于content-disposition模块"[label="设置",color=red];
+    "res.append()"->"res.set()";
+    "res.set()"->"res.header()"->"response.setHeader()"[color=red];
+    "res.cookie()"->"Set-Cookie"->"基于cookie模块"[color=green];
+    "res.location()"->"Location"[label="设置",color=yellow];
+    "res.redirect()"->"res.format()"->"res.end()"[color=red];
+    "res.end()"->"response.end()";
+    "res.render()"->"app.render()";
+    "res.send()"->"res.end()";
+    subgraph cluster_http_ServerResponse {
+        label = "原生http模块的ServerResponse对象";
+        "ServerResponse";
+        "response.statusCode";
+        "response.end()";
+        "response.getHeader()";
+        "response.setHeader()";
+    }
+
+    subgraph cluster_http_header {
+        label="http头";
+        "Accept";
+        "content-disposition";
+        "Content-Type";
+        "Link";
+        "Location";
+        "Set-Cookie";
+    }
+
+}

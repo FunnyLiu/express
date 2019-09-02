@@ -1,0 +1,60 @@
+digraph tree
+{
+    nodesep=0.5;
+    charset="UTF-8";
+    rankdir=LR;
+    fixedsize=true;
+    compound=true;
+    node [style="rounded,filled", width=0, height=0, shape=box, fillcolor="#E5E5E5", concentrate=true]
+
+    subgraph cluster_router {
+        label = "router/index.js";
+        "proto"->"初始化Router";
+        "proto.params";
+        "proto.stack"->"路由，中间件"[label="set"];
+        "proto.param()";
+        "proto.handle()";
+        "proto.process_params()";
+        "proto.use()";
+        "proto.route()";
+        "proto.methods()";
+    }
+    "proto.param()"->"proto.params"[label="set"];
+    "proto.handle()"->"proto.stack"[label="消费",color=pink];
+    "proto.stack"->"Layer.handle_error()"[label="异常",color=pink];
+    "proto.stack"->"Layer.handle_request()"[label="请求",color=pink];
+    "proto.use()"->"Layer"[label="1.new",color=green]
+    "proto.use()"->"proto.stack"[label="2.push",color=green];
+    "proto.route()"->"Route"[label="1.new",color=red];
+    "proto.route()"->"Layer"[label="2.new",color=red];
+    "proto.route()"->"Route.dispatch()"[label="3.回调",color=red];
+    "proto.route()"->"proto.stack"[label="3.push",color=red];
+    "proto.methods()"->"Route.methods()";
+
+    subgraph cluster_layer {
+        label = "router/layer.js";
+        "Layer"->"相同path为同一层";
+        "Layer.handle_error()";
+        "Layer.handle_request()";
+        "Layer.match()";
+        "Layer.decode_param()";
+    }
+
+    subgraph cluster_route {
+        label = "router/route.js";
+        "Route";
+        "this.path";
+        "this.stack";
+        "this.methods";
+        "Route._handles_method()";
+        "Route._options()";
+        "Route.dispatch()";
+        "Route.all()";
+        "Route.methods()";
+    }
+    "Route.methods()"->"Layer"[color=blue,label="1.使用构造函数"];
+    "Layer"->"this.stack"[label="2.push",color=blue]
+    "Route.dispatch()"->"this.stack"[label="消费",color=yellow];
+    "this.stack"->"Layer.handle_error()"[label="异常",color=yellow];
+    "this.stack"->"Layer.handle_request()"[label="请求",color=yellow];
+}
