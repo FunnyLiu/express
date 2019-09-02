@@ -28,9 +28,9 @@
 ├── request.js - 封装了一些req.**的API和属性
 ├── response.js - 封装了一些res.**的API和属性
 ├── router
-|  ├── index.js
-|  ├── layer.js
-|  └── route.js
+|  ├── index.js - 管理所有中间件, Router的入口文件
+|  ├── layer.js - 中间件模型，提供底层请求和异常处理函数
+|  └── route.js - 管理路由中间件
 ├── utils.js
 └── view.js
 ```
